@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import solarSystemData from './data/solarSystem.js';
 import { createSolarSystem } from './3d/solarSystem.js';
 import { updateOrbits } from './simulation/orbitSimulation.js';
+import { createStars } from './3d/stars.js';
 
 const scene = new THREE.Scene();
 
@@ -52,6 +53,7 @@ const objects = createSolarSystem(
     solarSystemData
 );
 
+createStars(scene);
 
 // Animation
 
