@@ -9,8 +9,10 @@ function createPlanet(data) {
         32
     );
 
-    const material = new THREE.MeshBasicMaterial({
-        color: data.color
+    const material = new THREE.MeshStandardMaterial({
+        color: data.color,
+        roughness: 0.8,
+        metalness: 0
     });
 
     return new THREE.Mesh(
@@ -22,24 +24,59 @@ function createPlanet(data) {
 
 function createOrbit(data) {
 
-    const geometry = new THREE.RingGeometry(
-        data.orbitDistance - 0.01,
-        data.orbitDistance + 0.01,
-        128
-    );
+    const points = [];
 
-    const material = new THREE.MeshBasicMaterial({
-        color: 0x444444,
-        side: THREE.DoubleSide
-    });
+    const segments = 128;
 
-    const orbit = new THREE.Mesh(
-        geometry,
-        material
-    );
+    const eccentricity = data.eccentricity;
 
-    orbit.rotation.x = Math.PI / 2;
+    const inclination =
+        THREE.MathUtils.degToRad(data.inclination);
 
+    for (let i = 0; i <= segments; i++) {
+
+        const angle =
+            (i / segments) * Math.PI * 2;
+
+        const radius =
+            data.orbitDistance *
+            (1 - eccentricity * eccentricity) /
+            (1 + eccentricity * Math.cos(angle));
+
+        const x =
+            Math.cos(angle) * radius;
+
+        const z =
+            Math.sin(angle) * radius;
+
+        points.push(
+            new THREE.Vector3(
+                x,
+                0,
+                z
+            )
+        );
+
+    }
+
+
+    const geometry =
+        new THREE.BufferGeometry().setFromPoints(points);
+
+    const material =
+        new THREE.LineBasicMaterial({
+            color: 0x444444
+        });
+
+    const orbit =
+        new THREE.LineLoop(
+            geometry,
+            material
+        );
+
+
+    orbit.rotation.x = inclination;
+    
     return orbit;
 }
 
@@ -48,6 +85,12 @@ function createSolarSystem(scene, data) {
 
     const objects = {};
 
+    const ambientLight = new THREE.AmbientLight(
+    0xffffff,
+    0.08
+    );
+
+    scene.add(ambientLight);
 
     // Sun
 
@@ -67,6 +110,14 @@ function createSolarSystem(scene, data) {
     );
 
     scene.add(objects.sun);
+
+    const sunlight = new THREE.PointLight(
+        0xffffff,
+        2,
+        100
+    );
+
+    objects.sun.add(sunlight);
 
 
     // Planets

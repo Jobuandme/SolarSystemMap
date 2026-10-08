@@ -1,22 +1,62 @@
+import * as THREE from 'three';
+
+
 function updateOrbits(data, objects, angle) {
 
     data.planets.forEach((planetData) => {
 
         const planet = objects[planetData.id];
 
-        const planetAngle =
-            angle * planetData.orbitSpeed / 0.005;
+        const orbitAngle =
+            angle * planetData.orbitSpeed / 0.005 +
+            planetData.orbitOffset;
 
-        planet.position.x =
-            Math.cos(planetAngle) *
-            planetData.orbitDistance;
+        const eccentricity =
+            planetData.eccentricity;
 
-        planet.position.z =
-            Math.sin(planetAngle) *
-            planetData.orbitDistance;
+        const radius =
+            planetData.orbitDistance *
+            (1 - eccentricity * eccentricity) /
+            (1 + eccentricity * Math.cos(orbitAngle));
+
+
+        // Position on the flat elliptical orbit
+
+        const x =
+            Math.cos(orbitAngle) * radius;
+
+        const y = 0;
+
+        const z =
+            Math.sin(orbitAngle) * radius;
+
+
+        // Apply the exact same inclination
+        // used by the orbit line
+
+        const inclination =
+            THREE.MathUtils.degToRad(
+                planetData.inclination
+            );
+
+        const inclinedY =
+            y * Math.cos(inclination) -
+            z * Math.sin(inclination);
+
+        const inclinedZ =
+            y * Math.sin(inclination) +
+            z * Math.cos(inclination);
+
+
+        planet.position.x = x;
+        planet.position.y = inclinedY;
+        planet.position.z = inclinedZ;
+
 
         planet.rotation.y += 0.01;
 
+
+        // Moons
 
         if (planetData.moons) {
 
